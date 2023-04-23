@@ -6,7 +6,6 @@ and to run shoplocation folder use npm run dev
 
 mongodb cloud for mongodb
 
-https://www.mongodb.com/docs/manual/reference/operator/aggregation/geoNear/
 
 <!-- mock data  -->
 
