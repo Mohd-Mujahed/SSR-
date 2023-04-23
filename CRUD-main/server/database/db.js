@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 
 const conection = async () => {
-  const URL = `{paste the mongo db cluster url}`;
+  
 
   //MongoDB database running on the local machine
-  const local_URL = `mongodb+srv://wildlyelite:k6y6LGPbOu6kONt8@crud-app.7ifnyi6.mongodb.net/?retryWrites=true&w=majority`;
+  const local_URL = `{paste the mongo db cluster url}`;
 
   try {
     await mongoose.connect(local_URL, {
