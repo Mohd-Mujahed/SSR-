@@ -1,50 +1,91 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom';
-import { getShopsNearMe  } from '../service/api';
-import NearShop from '../../../server/schema/nearshop-schema';
-import Nearme from './nearme';
+import React, { useState } from "react";
+import Nearme from "./nearme";
+import axios from "axios";
 
-const initvalues ={
-  range: '',
-  coordinates: ['', '']
-}
+/*
+define get shops near me. if error, catch, if res, navigate to nearme
+* */
+
+const initialState = {
+  longitude: "",
+  latitude: "",
+  range: "",
+};
 
 export default function GetShopNearme() {
-    const [shop, setShop] = useState(initvalues);
-    const [filteredShops, setFilteredShops] = useState([]); 
-    const { range,coordinates  } = shop;
-    
-    let navigate = useNavigate();
+  const [formInputData, setFormInputData] = useState(initialState);
+  const { longitude, latitude, range } = formInputData;
+  const [loading, setLoading] = useState(false);
+  const [nearshops, setNearShops] = useState([]);
 
+  //update the changes in form input
+  const handleFormInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormInputData({ ...formInputData, [name]: value });
+  };
 
-    const onValueChange = (e) => {
-      if (e.target.name === 'lon' || e.target.name === 'lat') {
-        const newCoords = [...coordinates];
-        newCoords[e.target.name === 'lon' ? 0 : 1] = e.target.value;
-        setShop({...shop, coordinates: newCoords });
-      } else {
-        setShop({...shop, [e.target.name]: e.target.value});
-      }
-    }
-  
-    const addShopDetails = async() => {
-      const newShop = new NearShop ({
-        range,
-        location: {
-          type: 'Point',
-          coordinates: [parseFloat(coordinates[0]), parseFloat(coordinates[1])]
-        }
+  //submit formData to api for processing
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      await axios({
+        method: "post",
+        url: "http://localhost:8000/getshopsnearme",
+        data: {
+          coordinates: [+longitude, +latitude],
+          range: +range,
+        },
+      }).then((res) => {
+        setLoading(false);
+        setNearShops(res.data);
       });
-      const response = await getShopsNearMe(newShop); // call the API and get the filtered data
-      setFilteredShops(response); // set the filtered data in state
-    //   navigate('/nearme');
+    } catch (error) {
+      setLoading(false);
+      console.log(error);
     }
+  };
+
   return (
-   <>
-   <input placeholder='lon' type="text" name='lon' onChange={(e) => onValueChange(e)}  />
-        <input placeholder='lat' type="text" name='lat' onChange={(e) => onValueChange(e)} /><input type="text" placeholder='distance' name='range' onChange={(e) => onValueChange(e)} />
-        <button variant="contained" color="primary" onClick={() => addShopDetails()}>Get shops</button>
-        {filteredShops.length > 0 && <Nearme shops={filteredShops} />}
-   </>
-  )
+    <>
+      <form onSubmit={handleFormSubmit}>
+        <input
+          placeholder="longitude"
+          type="text"
+          name="longitude"
+          value={longitude}
+          onChange={(e) => handleFormInputChange(e)}
+        />
+        <input
+          placeholder="latitude"
+          type="text"
+          name="latitude"
+          value={latitude}
+          onChange={(e) => handleFormInputChange(e)}
+        />
+        <input
+          type="text"
+          placeholder="range in km"
+          name="range"
+          value={range}
+          onChange={(e) => handleFormInputChange(e)}
+        />
+        <button variant="contained" color="primary" type="submit">
+          Get shops
+        </button>
+      </form>
+
+      {/* render nearshops below */}
+      <div>
+        {loading && <p>Loading...</p>}
+
+        {nearshops.length !== 0 && (
+          <>
+            <Nearme shops={nearshops} />
+          </>
+        )}
+      </div>
+    </>
+  );
 }

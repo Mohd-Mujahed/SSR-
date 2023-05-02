@@ -1,4 +1,3 @@
-import { Router } from "express";
 import express from "express";
 import {
   addShop,
@@ -13,9 +12,9 @@ const router = express.Router();
 
 router.post("/add", addShop);
 router.get("/all", getShops);
-router.get("/edit/:id", getShop);
+router.get("/get/:id", getShop);
 router.patch("/edit/:id", editShop);
-router.delete("/:id", deleteShop);
+router.delete("/delete/:id", deleteShop);
 router.post("/getshopsnearme", getShopsNearMe);
 router.post("/nearme", getShopsNearMe);
 

@@ -1,143 +1,108 @@
+// main file
 
-// main file 
-
-
-
-
-import React, { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom';
-import { addShop, editShop, getShop } from '../service/api';
-import Shop from '../../../server/schema/shop-schema.js';
-
-const initValues ={
-  name: '',
-  coordinates: [undefined, undefined],
-  category: ''
-}
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { addShop, editShop, getShop } from "../service/api";
+import Shop from "../../../server/schema/shop-schema.js";
+import axios from "axios";
 
 export default function EditShop() {
+  //access shop details from redux
+  const { shopDetails } = useSelector((store) => store["shopDetails"]);
+  const {
+    name: shopName,
+    location: { type, coordinates },
+    category: shopCategory,
+  } = shopDetails;
 
-  const [shop, setShop] = useState(initValues);
-  const { name, coordinates, category } = shop;
+  //initial state
+  const initialValues = {
+    name: shopName,
+    longitude: coordinates[0],
+    latitude: coordinates[1],
+    category: shopCategory,
+  };
 
-  let navigate = useNavigate();
+  const [shop, setShop] = useState(initialValues);
+  const { name, longitude, latitude, category } = shop;
   const { id } = useParams();
 
-  useEffect(() => {
-    loadShopDetails();
-  }, []);
-  console.log(shop)
+  let navigate = useNavigate();
 
-  const loadShopDetails = async () => {
-    const response = await getShop(id);
-    setShop( response.data);
-
-    console.log('data',response.data,'data')
-  }
-
+  //update form input changes
   const onValueChange = (e) => {
-    if (e.target.name === 'lon' || e.target.name === 'lat') {
-      const newCoords = shop.location.coordinates ? [...shop.location.coordinates] : [undefined, undefined];
-      newCoords[e.target.name === 'lon' ? 0 : 1] = e.target.value || undefined;
-      setShop({ ...shop, location: { ...shop.location, coordinates: newCoords } });
-    } else {
-      setShop({ ...shop, [e.target.name]: e.target.value });
-    }
-  }
+    const { name, value } = e.target;
+    setShop({ ...shop, [name]: value });
+  };
 
-  const editShopDetails = async () => {
-    const newShop = new Shop({
+  const editShopDetails = async (e) => {
+    e.preventDefault();
+
+    const updates = {
       name,
       location: {
-        type: 'Point',
-        coordinates: [parseFloat(shop.location.coordinates[0]), parseFloat(shop.location.coordinates[1])]
+        type,
+        coordinates: [+longitude, +latitude],
       },
-      category
-    });
-    await editShop(id,newShop);
-    navigate('/all');
-  }
+      category,
+    };
+
+    console.log(updates);
+
+    try {
+      await axios({
+        method: "patch",
+        url: `http://localhost:8000/edit/${id}`,
+        data: updates,
+      }).then((res) => {
+        console.log(res.data);
+        navigate("/all");
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <>
-       <div>
-//         <input type="text" placeholder='name' name='name' onChange={(e) => onValueChange(e)} value={ shop.name } />
-//         <input placeholder='lon' type="text" name='lon' onChange={(e) => onValueChange(e)} value={shop.location?.coordinates[0] ?? ''} />
-//         <input placeholder='lat' type="text" name='lat' onChange={(e) => onValueChange(e)} value={shop.location?.coordinates[1] ?? ''} />
-//         <input placeholder='category' type="text" name='category' onChange={(e) => onValueChange(e)} value={shop.category} />
-//         <button variant="contained" color="primary" onClick={() => editShopDetails()}>Edit Shop</button>
-//       </div>
+      <form onSubmit={editShopDetails}>
+        <input
+          type="text"
+          placeholder="name"
+          name="name"
+          onChange={(e) => onValueChange(e)}
+          value={name}
+        />
+
+        <input
+          placeholder="longitude"
+          type="text"
+          name="longitude"
+          onChange={(e) => onValueChange(e)}
+          value={longitude}
+        />
+
+        <input
+          placeholder="latitude"
+          type="text"
+          name="latitude"
+          onChange={(e) => onValueChange(e)}
+          value={latitude}
+        />
+
+        <input
+          placeholder="category"
+          type="text"
+          name="category"
+          onChange={(e) => onValueChange(e)}
+          value={category}
+        />
+
+        <button variant="contained" color="primary" type="submit">
+          Edit Shop
+        </button>
+      </form>
     </>
-  )
+  );
 }
-
-
-
-// import React, { useEffect, useState } from 'react';
-// import { useNavigate, useParams } from 'react-router-dom';
-// import { addShop, editShop, getShop } from '../service/api';
-// import Shop from '../../../server/schema/shop-schema.js';
-
-// const initValues ={
-//   name: '' ,location: {
-//     coordinates: [undefined, undefined]
-//   },
-//   category: ''
-// }
-
-// export default function EditShop() {
-
-//   const [shop, setShop] = useState(initValues);
-
-//   let navigate = useNavigate();
-//   const { id } = useParams();
-
-//   useEffect(() => {
-//     loadShopDetails();
-//   }, []);
-// console.log(shop.name);
-
-// console.log('hi',shop,shop.name);
-//   const loadShopDetails = async () => {
-//     const response = await getShop(id);
-//     setShop(response.data);
-//     console.log(response.data);
-//   }
-
-//   const onValueChange = (e) => {
-//     if (e.target.name === 'lon' || e.target.name === 'lat') {
-//       const newCoords = shop.location.coordinates ? [...shop.location.coordinates] : [undefined, undefined];
-//       newCoords[e.target.name === 'lon' ? 0 : 1] = e.target.value || undefined;
-//       setShop({ ...shop, location: { ...shop.location, coordinates: newCoords } });
-//     } else {
-//       setShop({ ...shop, [e.target.name]: e.target.value });
-//     }
-//   }
-
-//   const editShopDetails = async () => {
-//     const updatedShop = {
-//       name: shop.name,
-//       location: {
-//         type: 'Point',
-//         coordinates: [parseFloat(shop.location.coordinates[0]), parseFloat(shop.location.coordinates[1])]
-//       },
-//       category: shop.category
-//     }; 
-//     console.log( updatedShop)
-//     await editShop(id,updatedShop);
-//     // navigate('/all');
-//   }
-  
-
-//   return (
-//     <>
-//       <div>
-//         <input type="text" placeholder='name' name='name' onChange={(e) => onValueChange(e)} value={ shop.name } />
-//         <input placeholder='lon' type="text" name='lon' onChange={(e) => onValueChange(e)} value={shop.location?.coordinates[0] ?? ''} />
-//         <input placeholder='lat' type="text" name='lat' onChange={(e) => onValueChange(e)} value={shop.location?.coordinates[1] ?? ''} />
-//         <input placeholder='category' type="text" name='category' onChange={(e) => onValueChange(e)} value={shop.category} />
-//         <button variant="contained" color="primary" onClick={() => editShopDetails()}>Edit Shop</button>
-//       </div>
-//     </>
-//   )
-// }

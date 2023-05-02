@@ -35,7 +35,7 @@ export const getShop = async (req, res) => {
 
 // update shop
 export const editShop = async (req, res) => {
-  console.log('controller',req.body)
+  console.log("controller", req.body);
   try {
     await Shop.findOne({ _id: req.params.id })
       .exec()
@@ -57,19 +57,6 @@ export const editShop = async (req, res) => {
   }
 };
 
-
-// export const editShop  = async (request, response) => {
-//   let shop = request.body;
-
-//   const editUser = new Shop(shop);
-//   try{
-//       await Shop.updateOne({_id: request.params.id}, editUser);
-//       response.status(201).json(editUser);
-//   } catch (error){
-//       response.status(409).json({ message: error.message});     
-//   }
-// }
-
 //delete shop
 export const deleteShop = async (req, res) => {
   try {
@@ -83,12 +70,12 @@ export const deleteShop = async (req, res) => {
 //get shops near me
 export const getShopsNearMe = async (req, res) => {
   // Extract the current location coordinates and range(in km) from the request body
-  const range = req.body.range;
-  const coordinates=req.body.location.coordinates;
-  console.log(req.body.location.coordinates,coordinates, range )
+  const { coordinates, range } = req.body;
+
+  // console.log(req.body.location.coordinates, coordinates, range);
 
   try {
-    console.log('getsopnearme')
+    console.log("getsopnearme");
 
     // Find all shops within the specified range from the current location
     const shops = await Shop.find({
@@ -98,28 +85,24 @@ export const getShopsNearMe = async (req, res) => {
             type: "Point",
             coordinates,
           },
-          $maxDistance: range ,
+          $maxDistance: range * 1000,
         },
       },
     }).exec();
-    
-
-    
 
     // Return the shops if there are any
     if (shops.length > 0) {
-      console.log('getsopnearme',shops)
+      console.log("getsopnearme", shops);
       res.json(shops);
     } else {
       // Return an error message if there are no shops within the specified range
-      res
-      console.log('error getting')
+      res;
+      console
+        .log("error getting")
         .status(404)
         .json({ message: "No shops found within the specified range." });
     }
   } catch (error) {
-    
-
     res.status(500).json({ message: error.message });
   }
 };
